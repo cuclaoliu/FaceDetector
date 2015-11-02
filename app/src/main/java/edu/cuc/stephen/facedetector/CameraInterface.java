@@ -6,6 +6,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,13 +17,14 @@ import edu.cuc.stephen.facedetector.util.ImageUtil;
 
 public class CameraInterface {
     private Camera camera;
+    private int defaultCameraId = 0;
     private Camera.Parameters parameters;
     private boolean isPreviewing = false;
     private float previewRate = -1f;
     private static CameraInterface cameraInterface;
 
     public interface CameraOpenOverCallback{
-        public void cameraHasOpened();
+        void cameraHasOpened();
     }
 
     private CameraInterface(){}
@@ -35,9 +37,22 @@ public class CameraInterface {
     }
 
     //打开Camera
-    public void doOpenCamera(CameraOpenOverCallback callback){
-        camera = Camera.open();
+    public void doOpenCamera(CameraOpenOverCallback callback, Camera.PreviewCallback previewCallback){
+        int numberOfCameras = Camera.getNumberOfCameras();
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        for(int i=0; i < numberOfCameras; i++){
+            Camera.getCameraInfo(i, cameraInfo);
+            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                defaultCameraId = i;
+                //Toast.makeText(getApplicationContext(), "找到前置摄像头", Toast.LENGTH_LONG).show();
+            }
+        }
+        if(numberOfCameras <= 0){
+            //Toast.makeText(getApplicationContext(), getString(R.string.no_camera), Toast.LENGTH_LONG).show();
+        }
+        camera = Camera.open(defaultCameraId);
         callback.cameraHasOpened();
+        camera.setPreviewCallback(previewCallback);
     }
 
     //开启预览
@@ -100,7 +115,8 @@ public class CameraInterface {
     //拍照
     public void doTakePicture(){
         if(isPreviewing && (camera!=null)){
-            camera.takePicture(shutterCallback, null, jpegPictureCallback);
+            //camera.takePicture(shutterCallback, null, jpegPictureCallback);
+            camera.takePicture(shutterCallback, rawCallback, jpegPictureCallback);
         }
     }
 

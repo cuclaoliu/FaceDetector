@@ -41,10 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageViewPhoto;
     private Bitmap bitmapPhoto;
     private Button buttonGetImage, buttonOpenCamera;
-    private ImageButton buttonShutter;
+    private Button buttonShutter;
     private TextView textViewTip;
-    private Camera camera;
-    private int defaultCameraId = 0;
     private int orientionOfCamera;
     private final int maxNumberOfFaces = 5;
 
@@ -61,6 +59,19 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         initEvents();
     }
+
+    private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            Camera.Size localSize = camera.getParameters().getPreviewSize();  //获得预览分辨率
+            YuvImage localYuvImage = new YuvImage(data, 17, localSize.width, localSize.height, null);
+            ByteArrayOutputStream localByteArrayOutputStream = new ByteArrayOutputStream();
+            localYuvImage.compressToJpeg(new Rect(0, 0, localSize.width, localSize.height), 80, localByteArrayOutputStream);    //把摄像头回调数据转成YUV，再按图像尺寸压缩成JPEG，从输出流中转成数组
+            byte[] arrayOfByte = localByteArrayOutputStream.toByteArray();
+            StoreByteImage(arrayOfByte);
+
+        }
+    };
 
     private void initEvents() {
         buttonGetImage.setOnClickListener(new View.OnClickListener() {
@@ -80,11 +91,9 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(){
                     @Override
                     public void run() {
-                        CameraInterface.getInstance().doOpenCamera(cameraOpenOverCallback);
+                        CameraInterface.getInstance().doOpenCamera(cameraOpenOverCallback, previewCallback);
                     }
                 }.start();
-/*
-                */
 /*try {
                     Camera camera = Camera.open(defaultCameraId);       // 摄像头对象实例
                     Camera.Parameters parameters = camera.getParameters();
@@ -144,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         imageViewPhoto = (ImageView) findViewById(R.id.iv_photo);
         buttonGetImage = (Button) findViewById(R.id.button_get_image);
         buttonOpenCamera = (Button) findViewById(R.id.button_open_camera);
-        buttonShutter = (ImageButton) findViewById(R.id.button_shutter);
+        buttonShutter = (Button) findViewById(R.id.button_shutter);
         textViewTip = (TextView) findViewById(R.id.tv_tip);
         flWaiting = findViewById(R.id.fl_waiting);
         flCamera = findViewById(R.id.fl_camera);
@@ -158,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
         params.height = point.y;
         previewRate = DisplayUtil.getScreenRate(this);
         surfaceView.setLayoutParams(params);
-        getCameraInfo();
         detectAndRedraw();
     }
 
@@ -170,32 +178,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void getCameraInfo() {
-        int numberOfCameras = Camera.getNumberOfCameras();
-        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-        for(int i=0; i < numberOfCameras; i++){
-            Camera.getCameraInfo(i, cameraInfo);
-            if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                defaultCameraId = i;
-                Toast.makeText(getApplicationContext(), "找到前置摄像头", Toast.LENGTH_LONG).show();
-            }
-        }
-        if(numberOfCameras <= 0){
-            Toast.makeText(getApplicationContext(), getString(R.string.no_camera), Toast.LENGTH_LONG).show();
-            buttonOpenCamera.setEnabled(false);
-        }
-    }
-
     public void StoreByteImage(byte[] paramArrayOfByte){
-        //mSpecStopTime = System.currentTimeMillis();
-        //mSpecCameraTime = mSpecStopTime - mScanBeginTime;
-        //Log.i(TAG, "StoreByteImage and mSpecCameraTime is " + String.valueOf(mSpecCameraTime));
-
         BitmapFactory.Options localOptions = new BitmapFactory.Options();
-        Matrix localMatrix = new Matrix();
+        //Matrix localMatrix = new Matrix();
         bitmapPhoto = BitmapFactory.decodeByteArray(paramArrayOfByte, 0, paramArrayOfByte.length, localOptions);
-        int width = bitmapPhoto.getWidth();
-        int height = bitmapPhoto.getHeight();
+        //int width = bitmapPhoto.getWidth();
+        //int height = bitmapPhoto.getHeight();
         /*Bitmap localBitmap;
         switch(orientionOfCamera){   //根据前置安装旋转的角度来重新构造BMP
             case 0:
@@ -217,12 +205,9 @@ public class MainActivity extends AppCompatActivity {
                 localMatrix.postRotate(-90.0F, j / 2, i / 2);
                 localBitmap2 = Bitmap.createBitmap(j, i, Bitmap.Config.RGB_565);  //localBitmap2应是没有数据的
                 break;
-        }
+        }*/
         scaledPhoto();
         //int k = cameraResOr;
-        Bitmap localBitmap2 = null;
-        FaceDetector localFaceDetector = null;
-        */
     }
 
     private void detectAndRedraw() {
