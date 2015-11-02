@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FaceDetector</string>
+    <string name="get_image">本地图片</string>
+    <string name="no_camera">没找到摄像头</string>
+</resources>
