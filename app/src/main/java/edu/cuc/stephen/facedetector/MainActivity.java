@@ -77,7 +77,12 @@ public class MainActivity extends AppCompatActivity {
                 buttonShutter.setVisibility(View.VISIBLE);
                 buttonGetImage.setVisibility(View.INVISIBLE);
                 buttonOpenCamera.setVisibility(View.INVISIBLE);
-                CameraInterface.getInstance().doOpenCamera(surfaceView, surfaceView);
+                new Thread(){
+                    @Override
+                    public void run() {
+                        CameraInterface.getInstance().doOpenCamera(surfaceView, surfaceView);
+                    }
+                }.start();
 /*try {
                     Camera camera = Camera.open(defaultCameraId);       // 摄像头对象实例
                     Camera.Parameters parameters = camera.getParameters();

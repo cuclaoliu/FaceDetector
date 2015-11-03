@@ -38,7 +38,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         paint.setTextSize(32);
         //Paint.FontMetrics fontMetrics = paint.getFontMetrics();
         //float fontHeight = fontMetrics.bottom - fontMetrics.descent;
-        canvas.save();
+        //canvas.save();
         for(Camera.Face face : facesDetected){
             paint.setStrokeWidth(3);
             Log.e("Camera", "画出人脸！！！！！！");
@@ -48,7 +48,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             canvas.drawText(text, face.rect.left,
                     face.rect.top - 6, paint);
         }
-        canvas.restore();
+        //canvas.restore();
         super.draw(canvas);
     }
 
@@ -80,22 +80,29 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     //人脸探测侦听！
     @Override
     public void onFaceDetection(Camera.Face[] faces, Camera camera) {
+        Log.e("Camera", "onFaceDetection()");
         if (faces != null && faces.length >= 1){
             Log.e("FACE", "找到" + faces.length + "张脸！");
             facesDetected = faces;
             Canvas canvas = surfaceHolder.lockCanvas();
-            draw(canvas);
-            surfaceHolder.unlockCanvasAndPost(canvas);
+            if(canvas!=null) {
+                draw(canvas);
+                surfaceHolder.unlockCanvasAndPost(canvas);
+            }
         }
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
+        Log.e("Camera", "预览中......");
+        if(cameraInterface == null)
+            cameraInterface = CameraInterface.getInstance();
         cameraInterface.setFaceDetectionListener(this);
     }
 
     @Override
     public void cameraHasOpened() {
+        Log.e("Camera", "摄像头以打开......");
         CameraInterface.getInstance().doStartPreview(surfaceHolder, -1f);
     }
 }

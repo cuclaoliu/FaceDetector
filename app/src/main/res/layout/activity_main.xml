@@ -56,7 +56,7 @@
         <edu.cuc.stephen.facedetector.CameraSurfaceView
             android:id="@+id/camera_surface_view"
             android:layout_width="0dp"
-            android:layout_height="0dp" />
+            android:layout_height="0dp"/>
 
     </FrameLayout>
 
