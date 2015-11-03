@@ -60,19 +60,6 @@ public class MainActivity extends AppCompatActivity {
         initEvents();
     }
 
-    private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
-        @Override
-        public void onPreviewFrame(byte[] data, Camera camera) {
-            Camera.Size localSize = camera.getParameters().getPreviewSize();  //获得预览分辨率
-            YuvImage localYuvImage = new YuvImage(data, 17, localSize.width, localSize.height, null);
-            ByteArrayOutputStream localByteArrayOutputStream = new ByteArrayOutputStream();
-            localYuvImage.compressToJpeg(new Rect(0, 0, localSize.width, localSize.height), 80, localByteArrayOutputStream);    //把摄像头回调数据转成YUV，再按图像尺寸压缩成JPEG，从输出流中转成数组
-            byte[] arrayOfByte = localByteArrayOutputStream.toByteArray();
-            StoreByteImage(arrayOfByte);
-
-        }
-    };
-
     private void initEvents() {
         buttonGetImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,12 +75,9 @@ public class MainActivity extends AppCompatActivity {
                 imageViewPhoto.setVisibility(View.INVISIBLE);
                 flCamera.setVisibility(View.VISIBLE);
                 buttonShutter.setVisibility(View.VISIBLE);
-                new Thread(){
-                    @Override
-                    public void run() {
-                        CameraInterface.getInstance().doOpenCamera(cameraOpenOverCallback, previewCallback);
-                    }
-                }.start();
+                buttonGetImage.setVisibility(View.INVISIBLE);
+                buttonOpenCamera.setVisibility(View.INVISIBLE);
+                CameraInterface.getInstance().doOpenCamera(surfaceView, surfaceView);
 /*try {
                     Camera camera = Camera.open(defaultCameraId);       // 摄像头对象实例
                     Camera.Parameters parameters = camera.getParameters();
@@ -170,14 +154,6 @@ public class MainActivity extends AppCompatActivity {
         detectAndRedraw();
     }
 
-    CameraInterface.CameraOpenOverCallback cameraOpenOverCallback = new CameraInterface.CameraOpenOverCallback() {
-        @Override
-        public void cameraHasOpened() {
-            SurfaceHolder holder = surfaceView.getSurfaceHolder();
-            CameraInterface.getInstance().doStartPreview(holder, previewRate);
-        }
-    };
-
     public void StoreByteImage(byte[] paramArrayOfByte){
         BitmapFactory.Options localOptions = new BitmapFactory.Options();
         //Matrix localMatrix = new Matrix();
@@ -206,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
                 localBitmap2 = Bitmap.createBitmap(j, i, Bitmap.Config.RGB_565);  //localBitmap2应是没有数据的
                 break;
         }*/
-        scaledPhoto();
+        //scaledPhoto();
         //int k = cameraResOr;
     }
 
@@ -228,6 +204,12 @@ public class MainActivity extends AppCompatActivity {
 
         Log.e(getString(R.string.app_name), "find " + numberOfFaceDetected);
         for(int i=0; i< numberOfFaceDetected; i++){
+            CameraInterface.getInstance().doStopCamera();
+            imageViewPhoto.setVisibility(View.VISIBLE);
+            flCamera.setVisibility(View.INVISIBLE);
+            buttonShutter.setVisibility(View.INVISIBLE);
+            buttonGetImage.setVisibility(View.VISIBLE);
+            buttonOpenCamera.setVisibility(View.VISIBLE);
             paint.setStrokeWidth(3);
             PointF midPointF = new PointF();
             faces[i].getMidPoint(midPointF);

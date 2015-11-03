@@ -6,7 +6,6 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,12 +15,24 @@ import edu.cuc.stephen.facedetector.util.FileUtil;
 import edu.cuc.stephen.facedetector.util.ImageUtil;
 
 public class CameraInterface {
+
     private Camera camera;
     private int defaultCameraId = 0;
     private Camera.Parameters parameters;
     private boolean isPreviewing = false;
+    private boolean isFaceDetecting = false;
     private float previewRate = -1f;
+
     private static CameraInterface cameraInterface;
+
+    public void setFaceDetectionListener(Camera.FaceDetectionListener faceDetectionListener) {
+        if (isFaceDetecting)
+            return;
+        Log.e("Camera", "开始探测人脸！");
+        camera.setFaceDetectionListener(faceDetectionListener);
+        camera.startFaceDetection();
+        isFaceDetecting = true;
+    }
 
     public interface CameraOpenOverCallback{
         void cameraHasOpened();
@@ -106,6 +117,7 @@ public class CameraInterface {
             camera.setPreviewCallback(null);
             camera.stopPreview();
             isPreviewing = false;
+            isFaceDetecting = false;
             previewRate = -1f;
             camera.release();
             camera = null;
