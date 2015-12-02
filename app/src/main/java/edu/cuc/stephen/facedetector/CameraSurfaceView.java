@@ -9,48 +9,44 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.FrameLayout;
 
-public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Camera.FaceDetectionListener, Camera.PreviewCallback, CameraInterface.CameraOpenOverCallback{
+public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Camera.FaceDetectionListener, CameraInterface.CameraOpenOverCallback{
 
-    private static final int FIND_FACES = 0x115;
+    private static final int FIND_FACES = 0x150;
+    private static final int CAMERA_HAD_STARTED_PREVIEW = 0x151;
     private CameraInterface cameraInterface;
-    private Context context;
-    private Handler handler;
+    protected Context context;
+    protected Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case CAMERA_HAD_STARTED_PREVIEW:
+                    cameraInterface = CameraInterface.getInstance();
+                    cameraInterface.setFaceDetectionListener(CameraSurfaceView.this);
+                    Camera.Parameters parameters = cameraInterface.getParameters();
+                    Camera.Size size = parameters.getPreviewSize();
+                    int width = Math.min(getWidth(), getHeight());
+                    int height = width * size.width / size.height;
+                    CameraSurfaceView.this.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+                    break;
+            }
+            super.handleMessage(msg);
+        }
+    };
     private Camera.Face[] facesDetected;
+    private FaceView faceView;
 
     public SurfaceHolder getSurfaceHolder() {
         return surfaceHolder;
     }
 
     private SurfaceHolder surfaceHolder;
-
-    @Override
-    public void draw(Canvas canvas) {
-        Log.e("Camera", "surfaceView.draw()....");
-        boolean isMirror = false;
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.GREEN);
-        paint.setTextSize(32);
-        //Paint.FontMetrics fontMetrics = paint.getFontMetrics();
-        //float fontHeight = fontMetrics.bottom - fontMetrics.descent;
-        //canvas.save();
-        for(Camera.Face face : facesDetected){
-            paint.setStrokeWidth(3);
-            Log.e("Camera", "画出人脸！！！！！！");
-            canvas.drawRect(face.rect, paint);
-            //paint.setTextAlign(Paint.Align.LEFT);
-            String text = String.format("%.2f", face.score);
-            canvas.drawText(text, face.rect.left,
-                    face.rect.top - 6, paint);
-        }
-        //canvas.restore();
-        super.draw(canvas);
-    }
 
     public CameraSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -69,6 +65,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.i("Camera", "surfaceChanged...");
+        Log.e("Camera", "surface    width=" + width + ", height=" + height);
     }
 
     @Override
@@ -83,26 +80,22 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         Log.e("Camera", "onFaceDetection()");
         if (faces != null && faces.length >= 1){
             Log.e("FACE", "找到" + faces.length + "张脸！");
-            facesDetected = faces;
-            Canvas canvas = surfaceHolder.lockCanvas();
-            if(canvas!=null) {
-                draw(canvas);
-                surfaceHolder.unlockCanvasAndPost(canvas);
-            }
+            faceView.setFaces(faces);
+            faceView.setVisibility(VISIBLE);
+        }else {
+            faceView.clearFaces();
+            faceView.setVisibility(INVISIBLE);
         }
-    }
-
-    @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.e("Camera", "预览中......");
-        if(cameraInterface == null)
-            cameraInterface = CameraInterface.getInstance();
-        cameraInterface.setFaceDetectionListener(this);
     }
 
     @Override
     public void cameraHasOpened() {
         Log.e("Camera", "摄像头以打开......");
         CameraInterface.getInstance().doStartPreview(surfaceHolder, -1f);
+        handler.sendEmptyMessageDelayed(CAMERA_HAD_STARTED_PREVIEW, 1500);
+    }
+
+    public void setFaceView(FaceView faceView) {
+        this.faceView = faceView;
     }
 }

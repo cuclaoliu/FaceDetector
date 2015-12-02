@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private View flWaiting, flCamera;
     private CameraSurfaceView surfaceView = null;
+    private FaceView faceView;
     private float previewRate = -1f;
 
     private String currentPhotoPath;
@@ -77,12 +78,8 @@ public class MainActivity extends AppCompatActivity {
                 buttonShutter.setVisibility(View.VISIBLE);
                 buttonGetImage.setVisibility(View.INVISIBLE);
                 buttonOpenCamera.setVisibility(View.INVISIBLE);
-                new Thread(){
-                    @Override
-                    public void run() {
-                        CameraInterface.getInstance().doOpenCamera(surfaceView, surfaceView);
-                    }
-                }.start();
+                CameraInterface.getInstance().doOpenCamera(surfaceView, null);
+
 /*try {
                     Camera camera = Camera.open(defaultCameraId);       // 摄像头对象实例
                     Camera.Parameters parameters = camera.getParameters();
@@ -147,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
         flWaiting = findViewById(R.id.fl_waiting);
         flCamera = findViewById(R.id.fl_camera);
         surfaceView = (CameraSurfaceView) findViewById(R.id.camera_surface_view);
+        faceView = (FaceView) findViewById(R.id.face_view);
+        surfaceView.setFaceView(faceView);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         bitmapPhoto = BitmapFactory.decodeResource(getResources(), R.drawable.baby, options);

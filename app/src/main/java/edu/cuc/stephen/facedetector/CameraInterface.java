@@ -17,7 +17,17 @@ import edu.cuc.stephen.facedetector.util.ImageUtil;
 public class CameraInterface {
 
     private Camera camera;
-    private int defaultCameraId = 0;
+
+    public int getCameraId() {
+        return cameraId;
+    }
+
+    private int cameraId = 0;
+
+    public Camera.Parameters getParameters() {
+        return parameters;
+    }
+
     private Camera.Parameters parameters;
     private boolean isPreviewing = false;
     private boolean isFaceDetecting = false;
@@ -54,14 +64,14 @@ public class CameraInterface {
         for(int i=0; i < numberOfCameras; i++){
             Camera.getCameraInfo(i, cameraInfo);
             if(cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                defaultCameraId = i;
+                cameraId = i;
                 //Toast.makeText(getApplicationContext(), "找到前置摄像头", Toast.LENGTH_LONG).show();
             }
         }
         if(numberOfCameras <= 0){
             //Toast.makeText(getApplicationContext(), getString(R.string.no_camera), Toast.LENGTH_LONG).show();
         }
-        camera = Camera.open(defaultCameraId);
+        camera = Camera.open(cameraId);
         callback.cameraHasOpened();
         camera.setPreviewCallback(previewCallback);
     }
@@ -107,7 +117,7 @@ public class CameraInterface {
             Log.e("Camera", "最终设置：previewSize-- width="+parameters.getPreviewSize().width
                 +", height="+parameters.getPreviewSize().height);
             Log.e("Camera", "最终设置：pictureSize-- width="+parameters.getPictureSize().width
-                +", height="+parameters.getPreviewSize().height);
+                +", height="+parameters.getPictureSize().height);
         }
     }
 

@@ -58,13 +58,25 @@
             android:layout_width="0dp"
             android:layout_height="0dp"/>
 
+        <edu.cuc.stephen.facedetector.FaceView
+            android:id="@+id/face_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageButton
+            android:id="@+id/switch_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_switch_camera"
+            android:layout_gravity="top|right"/>
+
     </FrameLayout>
 
     <Button
         android:id="@+id/button_shutter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableTop="@drawable/camera"
+        android:drawableTop="@mipmap/btn_shutter_default"
         android:background="@android:color/transparent"
         android:text="拍照"
         android:drawablePadding="-16sp"
